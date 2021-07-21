@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alpha-pod-configmap
+  namespace: monitoring
+data:
+  #KAFKA server IP and port 
+  KAFKA_SERVER_IP: '192.168.1.7:9092'
+  #IP of Prometheus Pod in the K8s cluster
+  PROMETHEUS_SERVER: 'http://prometheus-service.monitoring.svc.cluster.local:9090'
+  #The query to be processed 
+  QUERY: 'container_memory_usage_bytes{container="prometheus"}'
+  #Query for resource limits
+  LIM_QUERY: 'container_spec_memory_limit_bytes{container="prometheus"}'
+  #Frequency to store data 
+  FREQ: '10'
+  #Fraction of Max utilisation 
+  RATIO: '0.6'

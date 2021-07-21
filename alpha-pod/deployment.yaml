@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alpha-pod
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: alpha-pod
+  template:
+    metadata:
+      labels:
+        app: alpha-pod
+    spec:
+      containers:
+      - name: stream-metrics
+        image: docker.io/harithlaxman/metrics-producer
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+        command: [python]
+        args: ['stream-metrics-kube.py', '$(KAFKA_SERVER_IP)', '$(PROMETHEUS_SERVER)', '$(QUERY)', '$(FREQ)']
+        env:
+          - name: KAFKA_SERVER_IP
+            valueFrom:
+              configMapKeyRef:
+                name: alpha-pod-configmap
+                key: KAFKA_SERVER_IP
+          - name: PROMETHEUS_SERVER
+            valueFrom:
+              configMapKeyRef:
+                name: alpha-pod-configmap
+                key: PROMETHEUS_SERVER
+          - name: QUERY
+            valueFrom:
+              configMapKeyRef:
+                name: alpha-pod-configmap
+                key: QUERY
+          - name: FREQ
+            valueFrom:
+              configMapKeyRef:
+                name: alpha-pod-configmap
+                key: FREQ
+      - name: controller
+        image: docker.io/harithlaxman/controller
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+        command: [python3]
+        args: ['controller.py', '$(KAFKA_SERVER_IP)', '$(PROMETHEUS_SERVER)', '$(LIM_QUERY)', '$(RATIO)']
+        env:
+          - name: KAFKA_SERVER_IP
+            valueFrom:
+              configMapKeyRef:
+                name: alpha-pod-configmap
+                key: KAFKA_SERVER_IP
+          - name: PROMETHEUS_SERVER
+            valueFrom:
+              configMapKeyRef:
+                name: alpha-pod-configmap
+                key: PROMETHEUS_SERVER
+          - name: LIM_QUERY
+            valueFrom:
+              configMapKeyRef:
+                name: alpha-pod-configmap
+                key: LIM_QUERY
+          - name: RATIO
+            valueFrom:
+              configMapKeyRef:
+                name: alpha-pod-configmap
+                key: RATIO
