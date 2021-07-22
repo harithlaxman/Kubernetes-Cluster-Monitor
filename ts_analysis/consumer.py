@@ -3,6 +3,11 @@ from datetime import datetime
 import csv, yaml, sys
 import pandas as pd
 from analysis import forecast
+from kafka import KafkaProducer
+import json
+
+producer = KafkaProducer(bootstrap_servers='192.168.1.7:9092',
+                         value_serializer=lambda v: json.dumps(v).encode('utf-8'))
 
 # kafka_server = sys.argv[1]
 consumer = KafkaConsumer(bootstrap_servers='192.168.1.7:9092')
@@ -30,7 +35,7 @@ for msg in consumer:
 			memory = metric['value'][1]
 			row.append(memory)
 		df = df.append(pd.DataFrame([row], columns=columns))
-	if(count==120):
-		count = count-60
-		forecast(df.set_index('ds'))
-		
+	if(count==1440):
+		count = count-180
+		predictions = forecast(df.set_index('ds'))
+		producer.send('predictions', {'predictions': predictions})
